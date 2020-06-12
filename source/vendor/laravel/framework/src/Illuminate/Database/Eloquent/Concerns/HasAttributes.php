@@ -2,17 +2,17 @@
 
 namespace Illuminate\Database\Eloquent\Concerns;
 
-use Carbon\CarbonInterface;
-use DateTimeInterface;
-use Illuminate\Contracts\Support\Arrayable;
-use Illuminate\Database\Eloquent\JsonEncodingException;
-use Illuminate\Database\Eloquent\Relations\Relation;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Collection as BaseCollection;
-use Illuminate\Support\Facades\Date;
-use Illuminate\Support\Str;
 use LogicException;
+use DateTimeInterface;
+use Carbon\CarbonInterface;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Date;
+use Illuminate\Contracts\Support\Arrayable;
+use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Support\Collection as BaseCollection;
+use Illuminate\Database\Eloquent\JsonEncodingException;
 
 trait HasAttributes
 {
@@ -195,10 +195,6 @@ trait HasAttributes
             if ($attributes[$key] && $this->isCustomDateTimeCast($value)) {
                 $attributes[$key] = $attributes[$key]->format(explode(':', $value, 2)[1]);
             }
-
-            if ($attributes[$key] instanceof Arrayable) {
-                $attributes[$key] = $attributes[$key]->toArray();
-            }
         }
 
         return $attributes;
@@ -376,7 +372,9 @@ trait HasAttributes
      */
     protected function getAttributeFromArray($key)
     {
-        return $this->attributes[$key] ?? null;
+        if (isset($this->attributes[$key])) {
+            return $this->attributes[$key];
+        }
     }
 
     /**
@@ -415,12 +413,6 @@ trait HasAttributes
         $relation = $this->$method();
 
         if (! $relation instanceof Relation) {
-            if (is_null($relation)) {
-                throw new LogicException(sprintf(
-                    '%s::%s must return a relationship instance, but "null" was returned. Was the "return" keyword used?', static::class, $method
-                ));
-            }
-
             throw new LogicException(sprintf(
                 '%s::%s must return a relationship instance.', static::class, $method
             ));
@@ -627,7 +619,7 @@ trait HasAttributes
      */
     protected function isDateAttribute($key)
     {
-        return in_array($key, $this->getDates(), true) ||
+        return in_array($key, $this->getDates()) ||
                                     $this->isDateCastable($key);
     }
 
@@ -773,7 +765,7 @@ trait HasAttributes
         // If this value is already a Carbon instance, we shall just return it as is.
         // This prevents us having to re-instantiate a Carbon instance when we know
         // it already is one, which wouldn't be fulfilled by the DateTime check.
-        if ($value instanceof CarbonInterface) {
+        if ($value instanceof Carbon || $value instanceof CarbonInterface) {
             return Date::instance($value);
         }
 
@@ -866,10 +858,7 @@ trait HasAttributes
      */
     public function getDates()
     {
-        $defaults = [
-            $this->getCreatedAtColumn(),
-            $this->getUpdatedAtColumn(),
-        ];
+        $defaults = [static::CREATED_AT, static::UPDATED_AT];
 
         return $this->usesTimestamps()
                     ? array_unique(array_merge($this->dates, $defaults))
@@ -1156,7 +1145,7 @@ trait HasAttributes
     /**
      * Determine if the new and old values for a given key are equivalent.
      *
-     * @param  string  $key
+     * @param  string $key
      * @param  mixed  $current
      * @return bool
      */
@@ -1175,9 +1164,6 @@ trait HasAttributes
         } elseif ($this->isDateAttribute($key)) {
             return $this->fromDateTime($current) ===
                    $this->fromDateTime($original);
-        } elseif ($this->hasCast($key, ['object', 'collection'])) {
-            return $this->castAttribute($key, $current) ==
-                $this->castAttribute($key, $original);
         } elseif ($this->hasCast($key)) {
             return $this->castAttribute($key, $current) ===
                    $this->castAttribute($key, $original);

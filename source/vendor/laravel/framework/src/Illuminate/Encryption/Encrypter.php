@@ -2,10 +2,10 @@
 
 namespace Illuminate\Encryption;
 
-use Illuminate\Contracts\Encryption\DecryptException;
-use Illuminate\Contracts\Encryption\Encrypter as EncrypterContract;
-use Illuminate\Contracts\Encryption\EncryptException;
 use RuntimeException;
+use Illuminate\Contracts\Encryption\DecryptException;
+use Illuminate\Contracts\Encryption\EncryptException;
+use Illuminate\Contracts\Encryption\Encrypter as EncrypterContract;
 
 class Encrypter implements EncrypterContract
 {
@@ -125,7 +125,7 @@ class Encrypter implements EncrypterContract
     /**
      * Decrypt the given value.
      *
-     * @param  string  $payload
+     * @param  mixed  $payload
      * @param  bool  $unserialize
      * @return mixed
      *

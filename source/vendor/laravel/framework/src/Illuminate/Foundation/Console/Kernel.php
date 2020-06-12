@@ -4,20 +4,19 @@ namespace Illuminate\Foundation\Console;
 
 use Closure;
 use Exception;
-use Illuminate\Console\Application as Artisan;
-use Illuminate\Console\Command;
-use Illuminate\Console\Scheduling\Schedule;
-use Illuminate\Contracts\Console\Kernel as KernelContract;
-use Illuminate\Contracts\Debug\ExceptionHandler;
-use Illuminate\Contracts\Events\Dispatcher;
-use Illuminate\Contracts\Foundation\Application;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Env;
-use Illuminate\Support\Str;
-use ReflectionClass;
-use Symfony\Component\Debug\Exception\FatalThrowableError;
-use Symfony\Component\Finder\Finder;
 use Throwable;
+use ReflectionClass;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
+use Illuminate\Console\Command;
+use Symfony\Component\Finder\Finder;
+use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Contracts\Events\Dispatcher;
+use Illuminate\Console\Application as Artisan;
+use Illuminate\Contracts\Debug\ExceptionHandler;
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Contracts\Console\Kernel as KernelContract;
+use Symfony\Component\Debug\Exception\FatalThrowableError;
 
 class Kernel implements KernelContract
 {
@@ -100,27 +99,19 @@ class Kernel implements KernelContract
     protected function defineConsoleSchedule()
     {
         $this->app->singleton(Schedule::class, function ($app) {
-            return tap(new Schedule($this->scheduleTimezone()), function ($schedule) {
-                $this->schedule($schedule->useCache($this->scheduleCache()));
-            });
+            return new Schedule($this->scheduleTimezone());
         });
-    }
 
-    /**
-     * Get the name of the cache store that should manage scheduling mutexes.
-     *
-     * @return string
-     */
-    protected function scheduleCache()
-    {
-        return Env::get('SCHEDULE_CACHE_DRIVER');
+        $schedule = $this->app->make(Schedule::class);
+
+        $this->schedule($schedule);
     }
 
     /**
      * Run the console application.
      *
      * @param  \Symfony\Component\Console\Input\InputInterface  $input
-     * @param  \Symfony\Component\Console\Output\OutputInterface|null  $output
+     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
      * @return int
      */
     public function handle($input, $output = null)
@@ -233,7 +224,7 @@ class Kernel implements KernelContract
             $command = $namespace.str_replace(
                 ['/', '.php'],
                 ['\\', ''],
-                Str::after($command->getPathname(), realpath(app_path()).DIRECTORY_SEPARATOR)
+                Str::after($command->getPathname(), app_path().DIRECTORY_SEPARATOR)
             );
 
             if (is_subclass_of($command, Command::class) &&
@@ -261,7 +252,7 @@ class Kernel implements KernelContract
      *
      * @param  string  $command
      * @param  array  $parameters
-     * @param  \Symfony\Component\Console\Output\OutputInterface|null  $outputBuffer
+     * @param  \Symfony\Component\Console\Output\OutputInterface  $outputBuffer
      * @return int
      *
      * @throws \Symfony\Component\Console\Exception\CommandNotFoundException
@@ -277,7 +268,7 @@ class Kernel implements KernelContract
      * Queue the given console command.
      *
      * @param  string  $command
-     * @param  array  $parameters
+     * @param  array   $parameters
      * @return \Illuminate\Foundation\Bus\PendingDispatch
      */
     public function queue($command, array $parameters = [])

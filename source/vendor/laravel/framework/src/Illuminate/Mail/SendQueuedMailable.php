@@ -2,8 +2,8 @@
 
 namespace Illuminate\Mail;
 
-use Illuminate\Contracts\Mail\Mailable as MailableContract;
 use Illuminate\Contracts\Mail\Mailer as MailerContract;
+use Illuminate\Contracts\Mail\Mailable as MailableContract;
 
 class SendQueuedMailable
 {
@@ -73,20 +73,6 @@ class SendQueuedMailable
         if (method_exists($this->mailable, 'failed')) {
             $this->mailable->failed($e);
         }
-    }
-
-    /**
-     * Get the retry delay for the mailable object.
-     *
-     * @return mixed
-     */
-    public function retryAfter()
-    {
-        if (! method_exists($this->mailable, 'retryAfter') && ! isset($this->mailable->retryAfter)) {
-            return;
-        }
-
-        return $this->mailable->retryAfter ?? $this->mailable->retryAfter();
     }
 
     /**
